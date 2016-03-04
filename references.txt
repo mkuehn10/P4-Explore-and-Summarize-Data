@@ -1,0 +1,9 @@
+Code to create histograms for every column in a data frame referenced from
+http://stackoverflow.com/a/13036178
+
+Code to create boxplots for every column in a data frame referenced from
+http://stackoverflow.com/a/11347017
+
+Code to create bar charts with top counts in categories referenced from
+http://stackoverflow.com/questions/23095129/only-displaying-top-3-bars-in-a-ggplot2-chart
+
