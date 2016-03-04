@@ -8,7 +8,7 @@ TITLE by YOUR_NAME_HERE
 # Notice that the parameter "echo" was set to FALSE for this code chunk.
 # This prevents the code from displaying in the knitted HTML output.
 # You should set echo=FALSE for all code chunks in your file.
-
+setwd("F:/Dropbox/Courses/00 Nanodegree -- Data Analyst/P4 Explore and Summarize Data/P4-Explore-and-Summarize-Data")
 library(ggplot2)
 library(data.table)
 library(reshape)
@@ -17,15 +17,18 @@ library(reshape)
 
 ```{r echo=FALSE, Load_the_Data}
 # Load the Data
-election08_df <- read.csv('2008election_wv.csv', header = T)
-table(election08_df$cand_nm)
-sort(table(election08_df$contbr_occupation), decreasing = TRUE)[1:25]
+election08_df <- read.csv('clean2008election_wv.csv', header = T)
+table(election08_df$occupation_category) /nrow(election08_df) * 100
+table(election08_df$cand_nm) / nrow(election08_df)
+table(election08_df$contbr_city)
+
+#sort(table(election08_df$contbr_occupation), decreasing = TRUE)[1:25]
 #names(sort(table(election08_df$contbr_city), decreasing = TRUE)[1:25])
 ggplot(aes(x = cand_nm), data = election08_df) +
   geom_bar() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
-ggplot(aes(x = contbr_occupation), data = election08_df) +
+ggplot(aes(x = occupation_category), data = election08_df) +
   geom_bar() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
@@ -37,6 +40,14 @@ ggplot(election1[contbr_city != "NA"], aes(contbr_city)) + geom_bar()
 
 election2 <- within(election, contbr_occupation <- factor(contbr_occupation,levels=names(sort(table(contbr_occupation), decreasing=TRUE))[1:5]))
 ggplot(election2[contbr_occupation != "NA"], aes(contbr_occupation)) + geom_bar()
+
+election3 <- within(election, 
+                    occupation_category <- factor(occupation_category,
+                                                  levels=names(sort(table(occupation_category), decreasing=TRUE))))
+
+ggplot(election3[occupation_category != "OTHER"], aes(occupation_category)) + 
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
 # Univariate Plots Section
