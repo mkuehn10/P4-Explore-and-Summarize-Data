@@ -7,3 +7,12 @@ http://stackoverflow.com/a/11347017
 Code to create bar charts with top counts in categories referenced from
 http://stackoverflow.com/questions/23095129/only-displaying-top-3-bars-in-a-ggplot2-chart
 
+Another method of ordering the bars in a car chart referenced from
+http://stackoverflow.com/a/27448463
+
+The final way I ended up sorting the bar charts (using scale_x_discrete) was referenced from
+http://www.cookbook-r.com/Graphs/Axes_(ggplot2)/
+
+Use of 'pastecs' package for stat.desc from:
+http://www.ats.ucla.edu/stat/r/faq/basic_desc.htm
+

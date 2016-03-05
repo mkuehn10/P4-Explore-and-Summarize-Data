@@ -1,4 +1,4 @@
-TITLE by YOUR_NAME_HERE
+Analyzing Election Contributions in West Virginia by Michael Kuehn
 ========================================================
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
@@ -10,60 +10,95 @@ TITLE by YOUR_NAME_HERE
 # You should set echo=FALSE for all code chunks in your file.
 setwd("F:/Dropbox/Courses/00 Nanodegree -- Data Analyst/P4 Explore and Summarize Data/P4-Explore-and-Summarize-Data")
 library(ggplot2)
-library(data.table)
-library(reshape)
-
-```
-
-```{r echo=FALSE, Load_the_Data}
+library(pastecs)
 # Load the Data
+dirty_election08_df <- read.csv('2008election_wv.csv', header = T)
 election08_df <- read.csv('clean2008election_wv.csv', header = T)
-table(election08_df$occupation_category) /nrow(election08_df) * 100
-table(election08_df$cand_nm) / nrow(election08_df)
-table(election08_df$contbr_city)
-
-#sort(table(election08_df$contbr_occupation), decreasing = TRUE)[1:25]
-#names(sort(table(election08_df$contbr_city), decreasing = TRUE)[1:25])
-ggplot(aes(x = cand_nm), data = election08_df) +
-  geom_bar() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
-ggplot(aes(x = occupation_category), data = election08_df) +
-  geom_bar() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-
-election <- data.table(election08_df)
-
-# http://stackoverflow.com/questions/23095129/only-displaying-top-3-bars-in-a-ggplot2-chart
-election1 <- within(election, contbr_city <- factor(contbr_city, levels=names(sort(table(contbr_city), decreasing=TRUE))[1:5]))
-ggplot(election1[contbr_city != "NA"], aes(contbr_city)) + geom_bar()
-
-election2 <- within(election, contbr_occupation <- factor(contbr_occupation,levels=names(sort(table(contbr_occupation), decreasing=TRUE))[1:5]))
-ggplot(election2[contbr_occupation != "NA"], aes(contbr_occupation)) + geom_bar()
-
-election3 <- within(election, 
-                    occupation_category <- factor(occupation_category,
-                                                  levels=names(sort(table(occupation_category), decreasing=TRUE))))
-
-ggplot(election3[occupation_category != "OTHER"], aes(occupation_category)) + 
-  geom_bar() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
+Prior to conducting an analysis using R, the data was reviewed and audited in Python.  Please see [Python code](Clean and Audit Election CSVs.py).  I noticed that there were a wide range of occupations that people had inputted while making their contributions.  In order to have a more meaningful analysis regarding contributor's occupations, I classified occupations into general categories (e.g. MEDICAL, EDUCATION, RETIRED, etc.).  The original data was read into a Python script and a new csv file was output with occupation categories.  Any contributions that were negative numbers were skipped since these are refunds.  The focus is on contributions made to judge the excitement and engagment of individual donors during the election cycle.
+
+The first stage of the analysis is to look at a summary of the data.  Most of the columns in the data are categorical variables.  Tables were created for each of these variables to examine the counts and relative frequencies within the data.  The contribution amount is a quantitative varible and will be analyzed using measures of center and spread.
+
+The following columns will be explored in this analysis: 'cand_nm','contbr_city', 'contbr_employer', 'contbr_occupation', 'occupation_category', 'contb_receipt_amt', 'contb_receipt_dt', and 'election_tp'
+
+The code block below includes the structure of the data, a summary of the data, and two sets of tables.  The first table lists the top 10 (if there are 10 categories) counts for each of the columns.  The second table lists the same information but as percentages.  A table of some detailed summary statistics for the quantitative variable 'contb_receipt_amt' is also included.
+
+```{r echo=FALSE, Univariate_Data_Analysis}
+str(election08_df)
+summary(election08_df)
+columns_to_analyze <- c('cand_nm','contbr_city', 'contbr_employer', 'contbr_occupation', 'occupation_category',
+                        'contb_receipt_dt', 'election_tp')
+lapply(election08_df[columns_to_analyze], function(x) sort(table(x), decreasing = TRUE)[1:10])
+lapply(election08_df[columns_to_analyze], function(x) sort(table(x), decreasing = TRUE)[1:10] / nrow(election08_df) * 100)
+
+options(scipen=100)
+options(digits=2)
+stat.desc(election08_df$contb_receipt_amt)
+```
 # Univariate Plots Section
 ```{r echo=FALSE, Univariate_Plots}
+columns_to_plot <- c('cand_nm', 'occupation_category', 'election_tp')
+
+quick_plots <- function(x) {
+  ggplot(aes(x = x, fill = x), data = election08_df) +
+    geom_bar() +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1))
+}
+
+lapply(election08_df[columns_to_plot], quick_plots)
+
+#quick_plots(cand_nm, election08_df)
+
+
+
+# 'contbr_city'
+ggplot(aes(x = contbr_city, fill = contbr_city), data = election08_df) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), decreasing=TRUE))[1:10])
+
+# 'contbr_employer'
+ggplot(aes(x = contbr_employer, fill = contbr_employer), data = election08_df) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_discrete(limits = names(sort(table(election08_df$contbr_employer), decreasing=TRUE))[1:10])
+
+# 'contbr_occupation'
+ggplot(aes(x = contbr_occupation, fill = contbr_occupation), data = election08_df) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_discrete(limits = names(sort(table(election08_df$contbr_occupation), decreasing=TRUE))[1:10])
+
+# 'contb_receipt_amt'
+ggplot(aes(x = contb_receipt_amt), data = election08_df) +
+  geom_histogram(binwidth = sqrt(nrow(election08_df)))
+
+
+ggplot(aes(x = '.', y = contb_receipt_amt), data = election08_df) +
+  geom_boxplot() +
+  coord_flip()
+
+# 'contb_receipt_dt'
+ggplot(aes(x = contb_receipt_dt, fill = contb_receipt_dt), data = election08_df) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_discrete(limits = names(sort(table(election08_df$contb_receipt_dt), decreasing=TRUE))[1:10])
+
 
 ```
 
 # Univariate Analysis
 
 ### What is the structure of your dataset?
+The cleaned data includes information on 9109 individual contributions.  There are 19 columns which are described [here](election_wv.txt).  
 
 ### What is/are the main feature(s) of interest in your dataset?
 
 ### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
 
 ### Did you create any new variables from existing variables in the dataset?
+Yes, during the cleaning and processing of the file, I decided to place the occupations into different bins.  There were too many variations of different occupations, and I wanted to be able to do some analysis on occupation and its effect on contributions.
 
 ### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
 
@@ -71,6 +106,28 @@ ggplot(election3[occupation_category != "OTHER"], aes(occupation_category)) +
 
 # Bivariate Plots Section
 ```{r echo=FALSE, Bivariate_Plots}
+
+boxplots <- function(x) {
+  ggplot(aes(x = x, y = contb_receipt_amt), data = election08_df) +
+  geom_boxplot() +
+  coord_flip()
+}
+
+lapply(election08_df[columns_to_plot], boxplots)
+
+# ggplot(aes(x = occupation_category, y = contb_receipt_amt), data = election08_df) +
+#   geom_boxplot() +
+#   coord_flip()
+
+ggplot(data = election08_df, aes(x = occupation_category, y = cand_nm)) +
+  geom_bin2d() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+ggplot(data = election08_df, aes(x = contbr_city, y = cand_nm)) +
+  geom_bin2d() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), decreasing=TRUE))[1:10])
 
 ```
 
@@ -88,6 +145,37 @@ ggplot(election3[occupation_category != "OTHER"], aes(occupation_category)) +
 # Multivariate Plots Section
 
 ```{r echo=FALSE, Multivariate_Plots}
+subset_by_cand_nm <- subset(election08_df, cand_nm %in% names(sort(table(election08_df$cand_nm), decreasing=TRUE))[1:6])
+ggplot(subset_by_cand_nm, aes(x = occupation_category, y = contb_receipt_amt)) +
+  geom_boxplot() +
+  facet_wrap(~ cand_nm) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  coord_flip() +
+  scale_y_log10()
+
+ggplot(subset_by_cand_nm, aes(x = contbr_city, y = contb_receipt_amt)) +
+  geom_boxplot() +
+  facet_wrap(~ cand_nm) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), decreasing=TRUE))[1:5]) +
+  coord_flip() +
+  scale_y_log10()
+
+ggplot(subset_by_cand_nm, aes(x = contb_receipt_dt, y = contb_receipt_amt)) +
+  geom_boxplot() +
+  facet_wrap(~ cand_nm) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_discrete(limits = names(sort(table(subset_by_cand_nm$contb_receipt_dt), decreasing=TRUE))[1:5]) +
+  coord_flip() +
+  scale_y_log10()
+
+test_sub <- subset(election08_df, cand_nm == 'Edwards, John')
+ggplot(test_sub, aes(x = contb_receipt_dt, y = contb_receipt_amt)) +
+  geom_boxplot() +
+  scale_x_discrete(limits = names(sort(table(test_sub$contb_receipt_dt), decreasing=TRUE))[1:15]) +
+  coord_cartesian(ylim = c(0, 250)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+  
 
 ```
 
@@ -105,6 +193,32 @@ ggplot(election3[occupation_category != "OTHER"], aes(occupation_category)) +
 
 ### Plot One
 ```{r echo=FALSE, Plot_One}
+ggplot(aes(x = cand_nm, fill = cand_nm), data = election08_df) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab('Candidate') +
+  ylab('Number of Contributions') +
+  ggtitle('Contributions Sorted by Candidate') +
+  scale_fill_discrete(name = "Candidate Name", breaks = levels(election08_df$cand_nm)) +
+  scale_x_discrete(limits = names(sort(table(election08_df$cand_nm), decreasing=TRUE))[1:8])
+
+# ggplot(aes(x = cand_nm, fill = cand_nm), data = election08_df) +
+#   geom_bar() +
+#   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+#   xlab('Candidate') +
+#   ylab('Number of Contributions') +
+#   ggtitle('Contributions Sorted by Candidate') +
+#   scale_fill_discrete(name = "Candidate Name", breaks = levels(election08_df$cand_nm)) +
+#   scale_x_discrete(limits = names(sort(table(election08_df$cand_nm), decreasing=TRUE)))
+
+ggplot(aes(x = occupation_category, fill = occupation_category), data = election08_df) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  xlab('Occupation Category') +
+  ylab('Count') +
+  ggtitle('Occupations Sorted by Category') +
+  scale_fill_discrete(name = "Occupation Category", breaks = levels(election08_df$occupation_category)) +
+  scale_x_discrete(limits = names(sort(table(election08_df$occupation_category), decreasing=TRUE)))
 
 ```
 
