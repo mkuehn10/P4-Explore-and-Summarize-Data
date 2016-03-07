@@ -58,6 +58,8 @@ ggplot(aes(x = contbr_city, fill = contbr_city), data = election08_df) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), decreasing=TRUE))[1:10])
 
+
+
 # 'contbr_employer'
 ggplot(aes(x = contbr_employer, fill = contbr_employer), data = election08_df) +
   geom_bar() +
@@ -94,8 +96,10 @@ ggplot(aes(x = contb_receipt_dt, fill = contb_receipt_dt), data = election08_df)
 The cleaned data includes information on 9109 individual contributions.  There are 19 columns which are described [here](election_wv.txt).  
 
 ### What is/are the main feature(s) of interest in your dataset?
+The main features of interest are the candidates, contributor occupations, contributor cities, contribution amounts, and contribution dates.  
 
 ### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
+Of the 17 candidates who received contributions in this data, only a handful are probably worth investigating.  For example, there are only 3 candidates (Obama, McCain, and Clinton) who received over 10% of the total number of contributions. Only 5 other candidates received more than 1% of the total number of contributions.  This could be an argument to only focus on the data for Obama, McCain, and Clinton.  Another case for focusing on the main candidates would be that many of the other candidates dropped out early in the primary cycle.  Edwards, Romney, and Huckabee dropped out in January, February, and March 2008, respectively (<a href="https://en.wikipedia.org/wiki/Democratic_Party_presidential_primaries,_2008#Candidates_and_results" target="new">Democratic Primary</a> & <a href="https://en.wikipedia.org/wiki/Republican_Party_presidential_primaries,_2008#Candidates" target="new">Republican Primary</a>).  Republicans Brownback, Gilmore, and Tancredo who appear in the data withdrew before the primaries (<a href="https://en.wikipedia.org/wiki/Republican_Party_presidential_primaries,_2008#Withdrew_before_primaries" target="new">Withdrew before primaries</a>).  Other candidates in the data set have such a small amount of contributions to justify looking at the main candidates of Clinton, McCain, and Obama in later sections.
 
 ### Did you create any new variables from existing variables in the dataset?
 Yes, during the cleaning and processing of the file, I decided to place the occupations into different bins.  There were too many variations of different occupations, and I wanted to be able to do some analysis on occupation and its effect on contributions.
@@ -106,6 +110,24 @@ Yes, during the cleaning and processing of the file, I decided to place the occu
 
 # Bivariate Plots Section
 ```{r echo=FALSE, Bivariate_Plots}
+subset_by_cand_nm <- subset(election08_df, cand_nm %in% names(sort(table(election08_df$cand_nm), decreasing=TRUE))[1:3])
+
+# "Main" Candidates > 10% of the contributions in the data set
+subset_by_main_cand <- subset(election08_df, cand_nm %in% c("Clinton, Hillary Rodham","Obama, Barack","McCain, John S"))
+ggplot(aes(x = contbr_city, fill = cand_nm), data = election08_df) +
+  geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), decreasing=TRUE))[1:10])
+
+ggplot(aes(x = contbr_city, fill = cand_nm), data = subset_by_main_cand) +
+  geom_bar(aes(y = (..count..)/sum(..count..))) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_discrete(limits = names(sort(table(subset_by_main_cand$contbr_city), decreasing=TRUE))[1:10])
+
+ggplot(aes(x = occupation_category, fill = cand_nm), data = subset_by_main_cand) +
+    geom_bar(aes(y = (..count..)/sum(..count..))) +
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_discrete(limits = names(sort(table(election08_df$occupation_category), decreasing=TRUE)))
 
 boxplots <- function(x) {
   ggplot(aes(x = x, y = contb_receipt_amt), data = election08_df) +
@@ -122,6 +144,13 @@ lapply(election08_df[columns_to_plot], boxplots)
 ggplot(data = election08_df, aes(x = occupation_category, y = cand_nm)) +
   geom_bin2d() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(data = subset_by_cand_nm, aes(x = occupation_category, y = cand_nm)) +
+  geom_bin2d() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_fill_gradientn(limits = c(0,2000), breaks = seq(0, 1500, by = 500), colors = c('blue','red'))
+
+#with(subset_by_cand_nm, table(occupation_category, cand_nm))
 
 
 ggplot(data = election08_df, aes(x = contbr_city, y = cand_nm)) +
@@ -145,7 +174,8 @@ ggplot(data = election08_df, aes(x = contbr_city, y = cand_nm)) +
 # Multivariate Plots Section
 
 ```{r echo=FALSE, Multivariate_Plots}
-subset_by_cand_nm <- subset(election08_df, cand_nm %in% names(sort(table(election08_df$cand_nm), decreasing=TRUE))[1:6])
+
+
 ggplot(subset_by_cand_nm, aes(x = occupation_category, y = contb_receipt_amt)) +
   geom_boxplot() +
   facet_wrap(~ cand_nm) +
