@@ -1,3 +1,9 @@
+---
+output:
+  html_document:
+    fig_width: 8
+  pdf_document: default
+---
 Analyzing Election Contributions in West Virginia by Michael Kuehn
 ========================================================
 
@@ -8,7 +14,6 @@ Analyzing Election Contributions in West Virginia by Michael Kuehn
 # Notice that the parameter "echo" was set to FALSE for this code chunk.
 # This prevents the code from displaying in the knitted HTML output.
 # You should set echo=FALSE for all code chunks in your file.
-setwd("F:/Dropbox/Courses/00 Nanodegree -- Data Analyst/P4 Explore and Summarize Data/P4-Explore-and-Summarize-Data")
 library(ggplot2)
 library(pastecs)
 # Load the Data
@@ -26,17 +31,27 @@ The code block below includes the structure of the data, a summary of the data, 
 
 ```{r echo=FALSE, Univariate_Data_Analysis}
 str(election08_df)
+
 summary(election08_df)
-columns_to_analyze <- c('cand_nm','contbr_city', 'contbr_employer', 'contbr_occupation', 'occupation_category',
+
+columns_to_analyze <- c('cand_nm','contbr_city', 'contbr_employer', 
+                        'contbr_occupation', 'occupation_category',
                         'contb_receipt_dt', 'election_tp')
-lapply(election08_df[columns_to_analyze], function(x) sort(table(x), decreasing = TRUE)[1:10])
-lapply(election08_df[columns_to_analyze], function(x) sort(table(x), decreasing = TRUE)[1:10] / nrow(election08_df) * 100)
+
+lapply(election08_df[columns_to_analyze], function(x) sort(table(x), 
+                                                           decreasing = TRUE)[1:10])
+
+lapply(election08_df[columns_to_analyze], function(x) sort(table(x), 
+                                                           decreasing = TRUE)[1:10] / nrow(election08_df) * 100)
 
 options(scipen=100)
+
 options(digits=2)
+
 stat.desc(election08_df$contb_receipt_amt)
 ```
 # Univariate Plots Section
+I plotted each of the categorical variables of interest using bar charts.  I created a histogram and boxplot for the contribution amounts.
 ```{r echo=FALSE, Univariate_Plots}
 columns_to_plot <- c('cand_nm', 'occupation_category', 'election_tp')
 
@@ -48,34 +63,30 @@ quick_plots <- function(x) {
 
 lapply(election08_df[columns_to_plot], quick_plots)
 
-#quick_plots(cand_nm, election08_df)
-
-
-
 # 'contbr_city'
 ggplot(aes(x = contbr_city, fill = contbr_city), data = election08_df) +
   geom_bar() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), decreasing=TRUE))[1:10])
-
-
+  scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), 
+                                       decreasing=TRUE))[1:10])
 
 # 'contbr_employer'
 ggplot(aes(x = contbr_employer, fill = contbr_employer), data = election08_df) +
   geom_bar() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_x_discrete(limits = names(sort(table(election08_df$contbr_employer), decreasing=TRUE))[1:10])
+  scale_x_discrete(limits = names(sort(table(election08_df$contbr_employer), 
+                                       decreasing=TRUE))[1:10])
 
 # 'contbr_occupation'
 ggplot(aes(x = contbr_occupation, fill = contbr_occupation), data = election08_df) +
   geom_bar() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_x_discrete(limits = names(sort(table(election08_df$contbr_occupation), decreasing=TRUE))[1:10])
+  scale_x_discrete(limits = names(sort(table(election08_df$contbr_occupation), 
+                                       decreasing=TRUE))[1:10])
 
 # 'contb_receipt_amt'
 ggplot(aes(x = contb_receipt_amt), data = election08_df) +
   geom_histogram(binwidth = sqrt(nrow(election08_df)))
-
 
 ggplot(aes(x = '.', y = contb_receipt_amt), data = election08_df) +
   geom_boxplot() +
@@ -85,9 +96,8 @@ ggplot(aes(x = '.', y = contb_receipt_amt), data = election08_df) +
 ggplot(aes(x = contb_receipt_dt, fill = contb_receipt_dt), data = election08_df) +
   geom_bar() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_x_discrete(limits = names(sort(table(election08_df$contb_receipt_dt), decreasing=TRUE))[1:10])
-
-
+  scale_x_discrete(limits = names(sort(table(election08_df$contb_receipt_dt), 
+                                       decreasing=TRUE))[1:10])
 ```
 
 # Univariate Analysis
@@ -105,29 +115,37 @@ Of the 17 candidates who received contributions in this data, only a handful are
 Yes, during the cleaning and processing of the file, I decided to place the occupations into different bins.  There were too many variations of different occupations, and I wanted to be able to do some analysis on occupation and its effect on contributions.
 
 ### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
-
-
+The distribution of contribution amounts is heavily skewed to the right.  This makes sense since there are probably many people who give small amounts, and a few donors who give higher or the maximum amounts.  I did perform some adjusting of the data prior to loading it into R.  I used [Python code](Clean and Audit Election CSVs.py) to create the different occupation categories, so I could complete a more meaningful analysis.  The original data has 1,265 different employer names and 858 different occupation names.  I chose to create 12 occupation categories of what I thought were the most prevelant within the data (Other, Retired, Medical, Education, Executive, Unemployed, Homemaker, Legal, Student, Political, Self-Employed, and Religious).
 
 # Bivariate Plots Section
+Since the majority of the variables are categorical, I used stacked bar charts as well as boxplots split by factor levels.  I also created some heat maps to see any interesting patterns.
 ```{r echo=FALSE, Bivariate_Plots}
-subset_by_cand_nm <- subset(election08_df, cand_nm %in% names(sort(table(election08_df$cand_nm), decreasing=TRUE))[1:3])
+subset_by_cand_nm <- subset(election08_df, cand_nm %in% names(sort(table(election08_df$cand_nm), 
+                                                                   decreasing=TRUE))[1:3])
 
 # "Main" Candidates > 10% of the contributions in the data set
 subset_by_main_cand <- subset(election08_df, cand_nm %in% c("Clinton, Hillary Rodham","Obama, Barack","McCain, John S"))
+
 ggplot(aes(x = contbr_city, fill = cand_nm), data = election08_df) +
   geom_bar() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), decreasing=TRUE))[1:10])
+  scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), 
+                                       decreasing=TRUE))[1:10])
 
 ggplot(aes(x = contbr_city, fill = cand_nm), data = subset_by_main_cand) +
   geom_bar(aes(y = (..count..)/sum(..count..))) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_x_discrete(limits = names(sort(table(subset_by_main_cand$contbr_city), decreasing=TRUE))[1:10])
+  scale_x_discrete(limits = names(sort(table(subset_by_main_cand$contbr_city), 
+                                       decreasing=TRUE))[1:10])
 
 ggplot(aes(x = occupation_category, fill = cand_nm), data = subset_by_main_cand) +
     geom_bar(aes(y = (..count..)/sum(..count..))) +
     theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_x_discrete(limits = names(sort(table(election08_df$occupation_category), decreasing=TRUE)))
+  scale_x_discrete(limits = names(sort(table(election08_df$occupation_category), 
+                                       decreasing=TRUE)))
+
+ggplot(aes(x= election_tp, y= contb_receipt_amt), data = election08_df) +
+  geom_bar(stat = 'identity')
 
 boxplots <- function(x) {
   ggplot(aes(x = x, y = contb_receipt_amt), data = election08_df) +
@@ -137,10 +155,6 @@ boxplots <- function(x) {
 
 lapply(election08_df[columns_to_plot], boxplots)
 
-# ggplot(aes(x = occupation_category, y = contb_receipt_amt), data = election08_df) +
-#   geom_boxplot() +
-#   coord_flip()
-
 ggplot(data = election08_df, aes(x = occupation_category, y = cand_nm)) +
   geom_bin2d() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1))
@@ -148,34 +162,31 @@ ggplot(data = election08_df, aes(x = occupation_category, y = cand_nm)) +
 ggplot(data = subset_by_cand_nm, aes(x = occupation_category, y = cand_nm)) +
   geom_bin2d() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_fill_gradientn(limits = c(0,2000), breaks = seq(0, 1500, by = 500), colors = c('blue','red'))
-
-#with(subset_by_cand_nm, table(occupation_category, cand_nm))
-
+  scale_fill_gradientn(limits = c(0,2000), breaks = seq(0, 1500, by = 500), 
+                       colors = c('blue','red'))
 
 ggplot(data = election08_df, aes(x = contbr_city, y = cand_nm)) +
   geom_bin2d() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), decreasing=TRUE))[1:10])
+  scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), 
+                                       decreasing=TRUE))[1:10])
 
 ```
 
 # Bivariate Analysis
 
 ### Talk about some of the relationships you observed in this part of the investigation. How did the feature(s) of interest vary with other features in the dataset?
+I looked at many of the relationships between the categorical variables to see if anything interesting popped out of the data.  I did notice that McCain received a larger share of the retired vote as compared to other occupation categories.  He also received a larger share of contributions from Charleston. 
 
 ### Did you observe any interesting relationships between the other features (not the main feature(s) of interest)?
+I did notice that the amount of contributions was much greater during the primaries than the general election.  I think this can be attributed to two factors: 1) there are far more candidates during the primaries and 2) the electorate seems to be more concerned during the primaries because West Virginia is a "red" state, so many may not decide to contribute during the general election cycle as they think it may not make a difference.
 
 ### What was the strongest relationship you found?
-
-
-
+The strongest relationship I found was that no matter how the data is looked at, Obama tends to dominate the contributions across occupation and city.   
 
 # Multivariate Plots Section
-
+I used most of the same bivariate plots, but added faceting in order to add another variable for analysis.
 ```{r echo=FALSE, Multivariate_Plots}
-
-
 ggplot(subset_by_cand_nm, aes(x = occupation_category, y = contb_receipt_amt)) +
   geom_boxplot() +
   facet_wrap(~ cand_nm) +
@@ -187,7 +198,8 @@ ggplot(subset_by_cand_nm, aes(x = contbr_city, y = contb_receipt_amt)) +
   geom_boxplot() +
   facet_wrap(~ cand_nm) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), decreasing=TRUE))[1:5]) +
+  scale_x_discrete(limits = names(sort(table(election08_df$contbr_city), 
+                                       decreasing=TRUE))[1:5]) +
   coord_flip() +
   scale_y_log10()
 
@@ -195,27 +207,49 @@ ggplot(subset_by_cand_nm, aes(x = contb_receipt_dt, y = contb_receipt_amt)) +
   geom_boxplot() +
   facet_wrap(~ cand_nm) +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  scale_x_discrete(limits = names(sort(table(subset_by_cand_nm$contb_receipt_dt), decreasing=TRUE))[1:5]) +
+  scale_x_discrete(limits = names(sort(table(subset_by_cand_nm$contb_receipt_dt), 
+                                       decreasing=TRUE))[1:5]) +
   coord_flip() +
   scale_y_log10()
 
-test_sub <- subset(election08_df, cand_nm == 'Edwards, John')
-ggplot(test_sub, aes(x = contb_receipt_dt, y = contb_receipt_amt)) +
+ggplot(subset_by_cand_nm, aes(x = cand_nm, y = contb_receipt_amt)) +
   geom_boxplot() +
-  scale_x_discrete(limits = names(sort(table(test_sub$contb_receipt_dt), decreasing=TRUE))[1:15]) +
-  coord_cartesian(ylim = c(0, 250)) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))
-  
+  facet_wrap(~ election_tp) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  scale_x_discrete(limits = names(sort(table(election08_df$cand_nm), 
+                                       decreasing=TRUE))[1:3]) +
+  coord_flip() +
+  scale_y_log10()
 
+ggplot(aes(x = cand_nm, y = contb_receipt_amt, fill = cand_nm), data = election08_df) +
+  geom_bar(stat = 'identity') +
+  facet_wrap(~ election_tp) +
+  scale_x_discrete(limits = names(sort(tapply(election08_df$contb_receipt_amt, 
+                                              election08_df$cand_nm, sum), 
+                                       decreasing = TRUE))[1:3]) +
+  scale_y_continuous(breaks = seq(0,1000000,100000)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+ggplot(aes(x = cand_nm, y = contb_receipt_amt, fill = cand_nm), data = election08_df) +
+  geom_bar(stat = 'identity') +
+  facet_wrap(~ occupation_category) +
+  scale_x_discrete(limits = names(sort(tapply(election08_df$contb_receipt_amt, 
+                                              election08_df$cand_nm, sum), 
+                                       decreasing = TRUE))[1:3]) +
+  scale_y_continuous(breaks = seq(0,1000000,100000)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
 # Multivariate Analysis
 
 ### Talk about some of the relationships you observed in this part of the investigation. Were there features that strengthened each other in terms of looking at your feature(s) of interest?
+The relationships I looked at involved looking at contribution amounts split by two of the categorical variables of interest.  It was interesting to notice that McCain did not receive any contributions from the Unemployed or Political Categories.  I was surprised to see that Clinton received some donations in October since she was not in the general election.
 
 ### Were there any interesting or surprising interactions between features?
+I was surprised to see that Clinton actually received more contributions during the primary election cycle.  It was also surprising to see that Obama received a lot of contributions for the general cycle while McCain did not.
 
 ### OPTIONAL: Did you create any models with your dataset? Discuss the strengths and limitations of your model.
+No.
 
 ------
 
@@ -223,53 +257,71 @@ ggplot(test_sub, aes(x = contb_receipt_dt, y = contb_receipt_amt)) +
 
 ### Plot One
 ```{r echo=FALSE, Plot_One}
-ggplot(aes(x = cand_nm, fill = cand_nm), data = election08_df) +
-  geom_bar() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  xlab('Candidate') +
-  ylab('Number of Contributions') +
-  ggtitle('Contributions Sorted by Candidate') +
-  scale_fill_discrete(name = "Candidate Name", breaks = levels(election08_df$cand_nm)) +
-  scale_x_discrete(limits = names(sort(table(election08_df$cand_nm), decreasing=TRUE))[1:8])
+elections <- c(P2008 = "Primary Election", G2008 = "General Election")
 
-# ggplot(aes(x = cand_nm, fill = cand_nm), data = election08_df) +
-#   geom_bar() +
-#   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-#   xlab('Candidate') +
-#   ylab('Number of Contributions') +
-#   ggtitle('Contributions Sorted by Candidate') +
-#   scale_fill_discrete(name = "Candidate Name", breaks = levels(election08_df$cand_nm)) +
-#   scale_x_discrete(limits = names(sort(table(election08_df$cand_nm), decreasing=TRUE)))
-
-ggplot(aes(x = occupation_category, fill = occupation_category), data = election08_df) +
-  geom_bar() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  xlab('Occupation Category') +
-  ylab('Count') +
-  ggtitle('Occupations Sorted by Category') +
-  scale_fill_discrete(name = "Occupation Category", breaks = levels(election08_df$occupation_category)) +
-  scale_x_discrete(limits = names(sort(table(election08_df$occupation_category), decreasing=TRUE)))
-
+ggplot(aes(x = cand_nm, y = contb_receipt_amt, fill = cand_nm), data = election08_df) +
+  geom_bar(stat = 'identity') +
+  facet_wrap(~ election_tp, labeller=labeller(election_tp = elections)) +
+  scale_x_discrete(limits = names(sort(tapply(election08_df$contb_receipt_amt, 
+                                              election08_df$cand_nm, sum), 
+                                  decreasing = TRUE))[1:5]) +
+  scale_y_continuous(breaks = seq(0,1000000,100000)) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) + 
+  theme(axis.text.x = element_blank(), legend.position = c(0.2,0.6), 
+        legend.justification = c(0,0)) +
+  scale_fill_discrete(name = "Candidate Name", 
+                      breaks = names(sort(tapply(election08_df$contb_receipt_amt,
+                                                 election08_df$cand_nm, sum),
+                                          decreasing = TRUE))[1:5]) +
+  xlab('') +
+  ylab('Total Contribution Amounts Received ($USD)') +
+  ggtitle('Comparison of Total Contribution Amounts - General vs. Primary')
 ```
 
 ### Description One
-
+The above bar chart shows how the contribution amounts differed between the primary election cycle and the general election cycle in 2008.  I chose to show the top 5 candidates by contribution amount to see the drop off between the primary and general cycles.  Hillary Clinton received the most money on the Democractic side, and she subsequently won the primary in West Virginia with 66.93% of the vote (<a href="https://en.wikipedia.org/wiki/West_Virginia_Democratic_primary,_2008" target="new">West Virginia Democratic primary, 2008</a>).  What's interesting to note is the significant advantage Obama had in contribution amounts for the general election cycle versus McCain.  A hypothesis could be that the Clinton supporters who gave her huge amounts of money during the primaries shifted their money to Obama in the general election.  It didn't matter -- McCain got 55.60% of the vote in West Virginia. (<a href="https://en.wikipedia.org/wiki/United_States_presidential_election_in_West_Virginia,_2008" target="new">United States presidential election in West Virginia, 2008</a>).
 
 ### Plot Two
 ```{r echo=FALSE, Plot_Two}
-
+ggplot(aes(x = cand_nm, y = contb_receipt_amt, fill = cand_nm), data = election08_df) +
+  geom_bar(stat = 'identity') +
+  facet_wrap(~ occupation_category) +
+  scale_x_discrete(limits = names(sort(tapply(election08_df$contb_receipt_amt, 
+                                              election08_df$cand_nm, sum), 
+                                       decreasing = TRUE))[1:3]) +
+  scale_y_continuous(breaks = seq(0,1000000,100000)) +
+  theme(axis.text.x = element_blank()) +
+  xlab('') +
+  ylab('Total Contribution Amount ($USD)') +
+  ggtitle('Contribution Amounts by Candidate and Occupation Category')
 ```
 
 ### Description Two
-
+This plot shows how each of the top three candidates fared with each of the occupation categories in terms of contribution money received.  I was surprised that the "religious" category contributed so little as compared with other occupation categories (there are many churches in the city I reside in).  I am also surprised in general at how much more the Democrats received than McCain received.  Perhaps a plausible explanation is that West Virginia is a "red" state, so many Republicans do not feel the need to donate money to the Republican because he will will anyway.  Obama dominated the major contribution categories of Medical, Other, and Retired.  McCain broke even with Homemakers.  
 
 ### Plot Three
 ```{r echo=FALSE, Plot_Three}
-
+ggplot(aes(x = occupation_category, y = contb_receipt_amt, fill = occupation_category), data = election08_df) +
+  guides(fill = FALSE) +
+  geom_boxplot() +
+  coord_flip() +
+  scale_x_discrete(limits = names(sort(table(election08_df$occupation_category), 
+                                       decreasing=FALSE))) +
+  #scale_y_log10() +
+  xlab('Occupation Category (Largest Count at Top)') +
+  ylab('Contribution Amount ($USD)') +
+  ggtitle('Contribution Amount by Occupation Category (Zoomed In)') +
+  coord_flip(ylim = c(0,500))
 ```
 
-### Description Three
+### Description Three   
+
+
+
+
+This box plot shows a comparison of the distributions of contribution amounts by occupation category.  The Other, Medical, Executive, Homemaker, Legal, and Self-Employed categories have the highest median contributions, but they are also the most spread out.  The Retired, Education, Unemployed, Student, Political, and Religious categories have the lowest median contribution amounts.  This makes sense since retired people usually have lower, fixed incomes, educators are notoriously complaining about low wages, unemployed people probably cannot afford to contribute high amounts, and students are known to always be broke.  I chose to zoom in on the data to get a better look at and compare the majority of the data shown in the box plots.
 
 ------
 
 # Reflection
+I selected information on election contributions because I was interested to see trends.  After downloading the data, I quickly realized that many of the techniques I am familiar with (histograms, scatterplots) would not be so useful with this data set because there is really only one quantitative variable of interest (contribution amount).  I enjoyed working with this data set as I learned a lot of useful techniques and tools with ggplot2.  I was successful in wrangling the occupation categories to create more meaningful analysis across occupations.  Future analysis could focus on the specific dates within the data set.  Time series date for each candidate could be plotted in order to see any trends over time.  It would be interesting to see candidates who still receive contributions after they drop out of the primary, and how the amounts wane over time.   
