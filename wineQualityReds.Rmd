@@ -56,7 +56,8 @@ ggplot(d, aes(factor(variable), value)) +
 
 # Bivariate Plots Section
 ```{r echo=FALSE, Bivariate_Plots}
-
+pairs(redwine_df[,2:13])
+pairs(redwine_df[,c(2,3,4,5,13)])
 ```
 
 # Bivariate Analysis
