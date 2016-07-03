@@ -1,3 +1,3 @@
 # P4-Explore-and-Summarize-Data
 
-<a href="http://abnormallydistributed.com/dand/election_wv.html" target="new">Project Report Available Here</a>
+[Project Report Available Here](https://mkuehn10.github.io/portfolio/election/)
